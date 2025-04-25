@@ -28,7 +28,7 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// Handle graceful shutdown
+// Handle graceful shutdownœ
 process.on("SIGINT", () => {
   console.log("Shutting down server gracefully");
   process.exit(0);
