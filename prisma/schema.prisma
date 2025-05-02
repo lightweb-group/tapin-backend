@@ -14,31 +14,54 @@ datasource db {
 }
 
 model Customer {
-  id          String    @id @default(uuid())
+  id          String        @id @default(uuid())
   phoneNumber String // Primary identifier for customer in kiosk
   name        String? // Optional, collected later
-  totalPoints Int       @default(0)
+  totalPoints Int           @default(0)
   lastCheckIn DateTime? // Track when customer last checked in
-  createdAt   DateTime  @default(now())
-  Merchant    Merchant? @relation(fields: [merchantId], references: [id])
+  createdAt   DateTime      @default(now())
+  Merchant    Merchant?     @relation(fields: [merchantId], references: [id])
   merchantId  String?
+  Transaction Transaction[]
 
   @@unique([phoneNumber])
   @@map("customers")
 }
 
 model Merchant {
-  id              String     @id @default(uuid())
+  id              String        @id @default(uuid())
   name            String // Business name
   address         String? // Store address
-  pointsPerVisit  Int        @default(10) // Base points for each check-in
+  pointsPerVisit  Int           @default(10) // Base points for each check-in
   pointsPerDollar Float? // Points earned per dollar spent (optional)
-  welcomeBonus    Int        @default(0) // Points given to new customers
+  welcomeBonus    Int           @default(0) // Points given to new customers
   customers       Customer[]
-  isActive        Boolean    @default(true)
-  createdAt       DateTime   @default(now())
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
   deletedAt       DateTime?
-  updatedAt       DateTime?  @updatedAt
+  updatedAt       DateTime?     @updatedAt
+  Transaction     Transaction[]
 
   @@map("merchants")
+}
+
+model Transaction {
+  id             String          @id @default(uuid())
+  merchantId     String
+  merchant       Merchant        @relation(fields: [merchantId], references: [id])
+  customerId     String
+  customer       Customer        @relation(fields: [customerId], references: [id])
+  dateTime       DateTime        @default(now())
+  pointsChange   Int // Positive for earning, negative for redeeming
+  activityType   TransactionType // "EARN", "REDEEM", or "ADJUSTMENT"
+  notes          String? // Optional description (e.g., "Purchase $10 = 10 pts")
+  purchaseAmount Float? // Amount of purchase, if applicable
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  EARN // Points earned from a visit or purchase
+  REDEEM // Points spent on a reward
+  ADJUSTMENT // Manual adjustment by admin/merchant
 }
