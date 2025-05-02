@@ -1,7 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import userRoutes from "./routes/userRoutes";
+// import userRoutes from "./routes/userRoutes";
+import examplePrismaRoute from "./routes/examplePrismaRoute";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -16,7 +17,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/users", userRoutes);
+// app.use("/api/users", userRoutes);
+app.use("/api/example", examplePrismaRoute);
 
 // Health check endpoint
 app.get("/health", (req: Request, res: Response) => {
@@ -25,11 +27,10 @@ app.get("/health", (req: Request, res: Response) => {
 
 // Start server
 app.listen(port, () => {
-  
   console.log(`Server is running on port ${port}`);
 });
 
-// Handle graceful shutdownœ
+// Handle graceful shutdown
 process.on("SIGINT", () => {
   console.log("Shutting down server gracefully");
   process.exit(0);
