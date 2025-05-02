@@ -38,6 +38,7 @@ model Merchant {
   isActive        Boolean    @default(true)
   createdAt       DateTime   @default(now())
   deletedAt       DateTime?
+  updatedAt       DateTime?  @updatedAt
 
   @@map("merchants")
 }

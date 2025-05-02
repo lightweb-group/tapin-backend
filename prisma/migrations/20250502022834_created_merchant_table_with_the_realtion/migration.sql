@@ -12,6 +12,7 @@ CREATE TABLE "merchants" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deletedAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3),
 
     CONSTRAINT "merchants_pkey" PRIMARY KEY ("id")
 );
