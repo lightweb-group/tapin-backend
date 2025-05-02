@@ -12,3 +12,15 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Customer {
+  id          String    @id @default(uuid())
+  phoneNumber String // Primary identifier for customer in kiosk
+  name        String? // Optional, collected later
+  totalPoints Int       @default(0)
+  lastCheckIn DateTime? // Track when customer last checked in
+  createdAt   DateTime  @default(now())
+
+  @@unique([phoneNumber])
+  @@map("customers")
+}
