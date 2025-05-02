@@ -20,7 +20,25 @@ model Customer {
   totalPoints Int       @default(0)
   lastCheckIn DateTime? // Track when customer last checked in
   createdAt   DateTime  @default(now())
+  Merchant    Merchant? @relation(fields: [merchantId], references: [id])
+  merchantId  String?
 
   @@unique([phoneNumber])
   @@map("customers")
+}
+
+model Merchant {
+  id              String     @id @default(uuid())
+  name            String // Business name
+  address         String? // Store address
+  pointsPerVisit  Int        @default(10) // Base points for each check-in
+  pointsPerDollar Float? // Points earned per dollar spent (optional)
+  welcomeBonus    Int        @default(0) // Points given to new customers
+  customers       Customer[]
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  deletedAt       DateTime?
+  updatedAt       DateTime?  @updatedAt
+
+  @@map("merchants")
 }
