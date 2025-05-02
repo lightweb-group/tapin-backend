@@ -32,6 +32,7 @@ model Merchant {
   id              String        @id @default(uuid())
   name            String // Business name
   address         String? // Store address
+  phoneNumber     String? // Primary identifier for merchant in kiosk
   pointsPerVisit  Int           @default(10) // Base points for each check-in
   pointsPerDollar Float? // Points earned per dollar spent (optional)
   welcomeBonus    Int           @default(0) // Points given to new customers
@@ -43,6 +44,7 @@ model Merchant {
   transactions    Transaction[]
   rewards         Reward[]
 
+  @@unique([phoneNumber])
   @@map("merchants")
 }
 
