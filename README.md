@@ -1,91 +1,190 @@
-# Node.js TypeScript Express Setup
+# Customer Check-in API
 
-A clean, proper Node.js TypeScript Express setup template that can be used as a starting point for your projects.
+A RESTful API for customer check-ins at merchant locations.
 
 ## Features
 
-- Node.js with Express server
-- TypeScript configuration
-- In-memory data store (easy to replace with a real database later)
-- Basic API CRUD operations
-- Environment configuration
-- Development and production scripts
+- Customer check-in with point accumulation
+- Welcome bonus for new customers
+- Transaction history tracking
+- Error handling with standardized responses
+- Input validation using Zod
+- Clean architecture with controllers and services
+- API versioning with `/api/v1` prefix
+- Rate limiting to prevent abuse
+- Automatic API documentation with Swagger generated from Zod schemas
 
-## Prerequisites
+## API Endpoints
 
-- Node.js (v14+ recommended)
-- npm or yarn
+All API endpoints are versioned with `/api/v1` prefix.
 
-## Getting Started
+### API Documentation
 
-### 1. Clone the repository
+The API documentation is automatically generated from Zod validation schemas using `zod-openapi`.
+This ensures that the API documentation is always in sync with the actual validation rules.
 
-```bash
-git clone <repository-url>
-cd node-ts-express-app
+To access the interactive API documentation, visit:
+
+```
+http://localhost:3000/api-docs
 ```
 
-### 2. Install dependencies
+This documentation includes:
 
-```bash
-npm install
-# or
-yarn install
+- All available endpoints
+- Request/response schemas
+- Request body validation rules
+- Required and optional fields
+- Data types and formats
+- Error responses
+
+### Check-in a Customer
+
+```
+POST /api/v1/customers/check-in
 ```
 
-### 3. Configure environment variables
+Request body:
 
-Create a `.env` file in the root directory (or modify the existing one) with your environment variables:
-
-```env
-NODE_ENV=development
-PORT=3000
+```json
+{
+  "phoneNumber": "1234567890",
+  "merchantId": "merchant-uuid",
+  "name": "John Doe" // Optional
+}
 ```
 
-### 4. Start the development server
+Response:
 
-```bash
-npm run dev
+```json
+{
+  "success": true,
+  "message": "Customer checked in successfully",
+  "data": {
+    "customer": {
+      "id": "customer-uuid",
+      "phoneNumber": "1234567890",
+      "name": "John Doe",
+      "totalPoints": 10,
+      "lastCheckIn": "2023-06-15T10:00:00.000Z",
+      "createdAt": "2023-05-01T10:00:00.000Z",
+      "merchantId": "merchant-uuid"
+    },
+    "transaction": {
+      "id": "transaction-uuid",
+      "merchantId": "merchant-uuid",
+      "customerId": "customer-uuid",
+      "dateTime": "2023-06-15T10:00:00.000Z",
+      "pointsChange": 10,
+      "activityType": "EARN",
+      "notes": "Check-in points"
+    }
+  },
+  "statusCode": 200
+}
 ```
 
-The server will be running at http://localhost:3000.
+### Get Customer by Phone Number
 
-## Scripts
+```
+GET /api/v1/customers/:phoneNumber
+```
 
-- `npm run dev` - Start the development server with hot-reloading
-- `npm run build` - Build the project for production
-- `npm start` - Start the production server
-- `npm run lint` - Run ESLint to check code style
+Response:
+
+```json
+{
+  "success": true,
+  "message": "Customer retrieved successfully",
+  "data": {
+    "id": "customer-uuid",
+    "phoneNumber": "1234567890",
+    "name": "John Doe",
+    "totalPoints": 50,
+    "lastCheckIn": "2023-06-15T10:00:00.000Z",
+    "createdAt": "2023-05-01T10:00:00.000Z",
+    "merchantId": "merchant-uuid",
+    "transactions": [
+      {
+        "id": "transaction-uuid",
+        "merchantId": "merchant-uuid",
+        "customerId": "customer-uuid",
+        "dateTime": "2023-06-15T10:00:00.000Z",
+        "pointsChange": 10,
+        "activityType": "EARN",
+        "notes": "Check-in points"
+      }
+      // More transactions...
+    ]
+  },
+  "statusCode": 200
+}
+```
 
 ## Project Structure
 
 ```
-node-ts-express-app/
+.
 ├── src/
-│   ├── routes/            # API routes
-│   │   └── userRoutes.ts  # User-related routes
-│   └── index.ts           # Application entry point
-├── .env                   # Environment variables
-├── .gitignore             # Git ignore rules
-├── package.json           # Project dependencies and scripts
-├── tsconfig.json          # TypeScript configuration
-└── README.md              # Project documentation
+│   ├── controllers/        # Request handlers
+│   ├── services/           # Business logic
+│   ├── middleware/         # Express middleware
+│   ├── validations/        # Zod validation schemas
+│   ├── utils/              # Utility functions
+│   ├── constants/          # Constants and enums
+│   ├── config/             # Configuration files
+│   ├── routes/             # API routes
+│   │   └── v1/             # Version 1 API routes
+│   └── index.ts            # Application entry point
+├── prisma/
+│   └── schema.prisma       # Database schema
+├── .env                    # Environment variables
+└── package.json            # Project dependencies
 ```
 
-## Adding New Features
+## Setup and Development
 
-### Creating a New Route
+### Prerequisites
 
-1. Create a new route file in `src/routes/`
-2. Import and use the route in `src/index.ts`
+- Node.js (v14 or higher)
+- PostgreSQL
+- npm or yarn
 
-### Adding a Database
+### Installation
 
-This template uses an in-memory data store for simplicity. When you're ready to add a real database:
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables in `.env`
+4. Run database migrations: `npm run prisma:migrate`
+5. Start the development server: `npm run dev`
 
-1. Install the database client/ORM of your choice (e.g., `mongoose`, `sequelize`, `typeorm`)
-2. Configure the database connection in your application
-3. Replace the in-memory operations with database operations
+## Error Handling
+
+All errors are returned in a standardized format:
+
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "statusCode": 400
+}
+```
+
+For validation errors, additional details are provided:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "path": "body.phoneNumber",
+      "message": "Phone number must be at least 10 characters"
+    }
+  ],
+  "statusCode": 400
+}
+```
 
 ## License
 
