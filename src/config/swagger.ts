@@ -488,6 +488,62 @@ const openApiDocument = createDocument({
           },
         },
       },
+      delete: {
+        summary: "Delete a customer (soft delete)",
+        tags: ["Customers"],
+        parameters: [
+          {
+            in: "path",
+            name: "phoneNumber",
+            required: true,
+            schema: {
+              type: "string",
+              minLength: 10,
+              maxLength: 15,
+              example: "1234567890",
+            },
+            description: "Phone number of the customer to delete",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Customer deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Customer deleted successfully",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            $ref: "#/components/responses/BadRequest",
+          },
+          "404": {
+            $ref: "#/components/responses/NotFound",
+          },
+          "429": {
+            $ref: "#/components/responses/TooManyRequests",
+          },
+          "500": {
+            $ref: "#/components/responses/InternalServer",
+          },
+        },
+      },
     },
   },
 });
