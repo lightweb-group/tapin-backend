@@ -23,6 +23,7 @@ model Customer {
   merchant     Merchant?     @relation(fields: [merchantId], references: [id])
   merchantId   String?
   transactions Transaction[]
+  updatedAt    DateTime?     @updatedAt
 
   @@unique([phoneNumber])
   @@map("customers")

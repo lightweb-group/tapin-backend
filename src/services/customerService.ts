@@ -125,3 +125,61 @@ export const getCustomerByPhone = async (phoneNumber: string) => {
 
   return customer;
 };
+
+/**
+ * Update customer information
+ * @param phoneNumber Customer phone number
+ * @param data Customer data to update
+ * @returns The updated customer
+ */
+export interface UpdateCustomerData {
+  name?: string;
+  phoneNumber?: string;
+  totalPoints?: number;
+}
+
+export const updateCustomer = async (
+  currentPhoneNumber: string,
+  data: UpdateCustomerData
+) => {
+  // Check if customer exists
+  const customer = await prisma.customer.findUnique({
+    where: { phoneNumber: currentPhoneNumber },
+  });
+
+  if (!customer) {
+    throw new ApiError("Customer not found", httpStatus.NOT_FOUND);
+  }
+
+  // If updating phone number, check if the new number already exists
+  if (data.phoneNumber && data.phoneNumber !== currentPhoneNumber) {
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { phoneNumber: data.phoneNumber },
+    });
+
+    if (existingCustomer) {
+      throw new ApiError(
+        "Phone number already exists for another customer",
+        httpStatus.CONFLICT
+      );
+    }
+  }
+
+  // Update customer
+  const updatedCustomer = await prisma.customer.update({
+    where: { phoneNumber: currentPhoneNumber },
+    data: {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+      ...(data.totalPoints !== undefined && { totalPoints: data.totalPoints }),
+    },
+    include: {
+      transactions: {
+        orderBy: { dateTime: "desc" },
+        take: 5,
+      },
+    },
+  });
+
+  return updatedCustomer;
+};

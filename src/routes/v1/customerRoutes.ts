@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { checkIn, getCustomer } from "../../controllers/customerController";
+import { checkIn, getCustomer, updateCustomer } from "../../controllers/customerController";
 import validate from "../../middleware/validate";
 import {
   checkInSchema,
   getCustomerByPhoneSchema,
+  updateCustomerSchema,
 } from "../../validations/customerValidation";
 import { standardRateLimit } from "../../middleware/rateLimit";
 
@@ -18,6 +19,14 @@ router.get(
   validate(getCustomerByPhoneSchema),
   standardRateLimit,
   getCustomer
+);
+
+// Update customer information
+router.put(
+  "/:phoneNumber",
+  validate(updateCustomerSchema),
+  standardRateLimit,
+  updateCustomer
 );
 
 export default router;
