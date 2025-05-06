@@ -1,5 +1,6 @@
 import { Router } from "express";
 import customerRoutes from "./customerRoutes";
+import merchantRoutes from "./merchantRoutes";
 import { standardRateLimit } from "../../middleware/rateLimit";
 
 const router = Router();
@@ -9,5 +10,8 @@ router.use(standardRateLimit);
 
 // Mount customer routes
 router.use("/customers", customerRoutes);
+
+// Mount merchant routes
+router.use("/merchants", merchantRoutes);
 
 export default router;
