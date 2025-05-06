@@ -75,3 +75,17 @@ export const updateCustomerSchema = z.object({
       }),
   }),
 });
+
+// Schema for deleting a customer
+export const deleteCustomerSchema = z.object({
+  params: z.object({
+    phoneNumber: z
+      .string()
+      .min(10, "Phone number must be at least 10 characters")
+      .max(15, "Phone number must be at most 15 characters")
+      .openapi({
+        description: "Phone number of the customer to delete",
+        example: "1234567890",
+      }),
+  }),
+});

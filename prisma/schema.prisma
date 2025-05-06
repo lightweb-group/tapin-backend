@@ -24,6 +24,7 @@ model Customer {
   merchantId   String?
   transactions Transaction[]
   updatedAt    DateTime?     @updatedAt
+  deletedAt    DateTime? // For soft delete
 
   @@unique([phoneNumber])
   @@map("customers")

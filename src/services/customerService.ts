@@ -183,3 +183,34 @@ export const updateCustomer = async (
 
   return updatedCustomer;
 };
+
+/**
+ * Soft delete a customer by setting deletedAt timestamp
+ * @param phoneNumber Phone number of the customer to delete
+ * @returns The deleted customer
+ */
+export const deleteCustomer = async (phoneNumber: string) => {
+  // Check if customer exists
+  const customer = await prisma.customer.findUnique({
+    where: { phoneNumber },
+  });
+
+  if (!customer) {
+    throw new ApiError("Customer not found", httpStatus.NOT_FOUND);
+  }
+
+  // If customer is already deleted
+  if (customer.deletedAt) {
+    throw new ApiError("Customer already deleted", httpStatus.BAD_REQUEST);
+  }
+
+  // Soft delete the customer by setting deletedAt timestamp
+  const deletedCustomer = await prisma.customer.update({
+    where: { phoneNumber },
+    data: {
+      deletedAt: new Date(),
+    },
+  });
+
+  return deletedCustomer;
+};

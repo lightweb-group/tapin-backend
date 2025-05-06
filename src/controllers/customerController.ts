@@ -3,6 +3,7 @@ import {
   checkInCustomer,
   getCustomerByPhone,
   updateCustomer as updateCustomerService,
+  deleteCustomer as deleteCustomerService,
 } from "../services/customerService";
 import asyncWrapper from "../utils/asyncWrapper";
 import { successResponse } from "../utils/ApiResponse";
@@ -47,5 +48,20 @@ export const updateCustomer = asyncWrapper(
     res
       .status(httpStatus.OK)
       .json(successResponse(null, "Customer updated successfully"));
+  }
+);
+
+/**
+ * Delete a customer (soft delete)
+ */
+export const deleteCustomer = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const { phoneNumber } = req.params;
+
+    await deleteCustomerService(phoneNumber);
+
+    return res
+      .status(200)
+      .json(successResponse(null, "Customer deleted successfully"));
   }
 );
