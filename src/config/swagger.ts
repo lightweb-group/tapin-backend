@@ -7,6 +7,7 @@ import {
   checkInSchema,
   getCustomerByPhoneSchema,
   updateCustomerSchema,
+  getAllCustomersSchema,
 } from "../validations/customerValidation";
 
 // Add OpenAPI metadata to our Zod schemas
@@ -275,6 +276,204 @@ const openApiDocument = createDocument({
     },
   },
   paths: {
+    "/customers": {
+      get: {
+        summary: "Get all customers with filtering and pagination",
+        tags: ["Customers"],
+        parameters: [
+          {
+            in: "query",
+            name: "phoneNumber",
+            schema: {
+              type: "string",
+            },
+            description: "Filter by phone number (partial match)",
+            example: "555",
+          },
+          {
+            in: "query",
+            name: "name",
+            schema: {
+              type: "string",
+            },
+            description: "Filter by name (partial match, case insensitive)",
+            example: "John",
+          },
+          {
+            in: "query",
+            name: "totalPointsMin",
+            schema: {
+              type: "integer",
+              minimum: 0,
+            },
+            description: "Minimum total points",
+            example: 100,
+          },
+          {
+            in: "query",
+            name: "totalPointsMax",
+            schema: {
+              type: "integer",
+              minimum: 0,
+            },
+            description: "Maximum total points",
+            example: 500,
+          },
+          {
+            in: "query",
+            name: "merchantId",
+            schema: {
+              type: "string",
+              format: "uuid",
+            },
+            description: "Filter by merchant ID",
+            example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          },
+          {
+            in: "query",
+            name: "page",
+            schema: {
+              type: "integer",
+              minimum: 1,
+              default: 1,
+            },
+            description: "Page number",
+            example: 1,
+          },
+          {
+            in: "query",
+            name: "limit",
+            schema: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 10,
+            },
+            description: "Number of items per page",
+            example: 10,
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Customers retrieved successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Customers retrieved successfully",
+                    },
+                    data: {
+                      type: "object",
+                      properties: {
+                        data: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              id: {
+                                type: "string",
+                                format: "uuid",
+                                description:
+                                  "Unique identifier for the customer",
+                              },
+                              phoneNumber: {
+                                type: "string",
+                                description:
+                                  "Customer phone number (unique identifier)",
+                              },
+                              name: {
+                                type: ["string", "null"],
+                                description: "Customer name (optional)",
+                              },
+                              totalPoints: {
+                                type: "integer",
+                                description: "Total accumulated points",
+                              },
+                              lastCheckIn: {
+                                type: ["string", "null"],
+                                format: "date-time",
+                                description:
+                                  "Date and time of the last check-in",
+                              },
+                              createdAt: {
+                                type: "string",
+                                format: "date-time",
+                                description:
+                                  "Date and time when customer was created",
+                              },
+                              merchantId: {
+                                type: ["string", "null"],
+                                format: "uuid",
+                                description:
+                                  "ID of the merchant the customer belongs to",
+                              },
+                              updatedAt: {
+                                type: ["string", "null"],
+                                format: "date-time",
+                                description:
+                                  "Date and time when customer was last updated",
+                              },
+                            },
+                          },
+                        },
+                        pagination: {
+                          type: "object",
+                          properties: {
+                            total: {
+                              type: "integer",
+                              description: "Total number of records",
+                              example: 100,
+                            },
+                            page: {
+                              type: "integer",
+                              description: "Current page number",
+                              example: 1,
+                            },
+                            limit: {
+                              type: "integer",
+                              description: "Number of records per page",
+                              example: 10,
+                            },
+                            totalPages: {
+                              type: "integer",
+                              description: "Total number of pages",
+                              example: 10,
+                            },
+                            hasNextPage: {
+                              type: "boolean",
+                              description: "Whether there is a next page",
+                              example: true,
+                            },
+                            hasPrevPage: {
+                              type: "boolean",
+                              description: "Whether there is a previous page",
+                              example: false,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "429": {
+            $ref: "#/components/responses/TooManyRequests",
+          },
+          "500": {
+            $ref: "#/components/responses/InternalServer",
+          },
+        },
+      },
+    },
     "/customers/check-in": {
       post: {
         summary: "Check in a customer",

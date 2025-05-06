@@ -4,6 +4,7 @@ import {
   getCustomer,
   updateCustomer,
   deleteCustomer,
+  getAllCustomers,
 } from "../../controllers/customerController";
 import validate from "../../middleware/validate";
 import {
@@ -11,9 +12,13 @@ import {
   getCustomerByPhoneSchema,
   updateCustomerSchema,
   deleteCustomerSchema,
+  getAllCustomersSchema,
 } from "../../validations/customerValidation";
 
 const router = Router();
+
+// Get all customers
+router.get("/", validate(getAllCustomersSchema), getAllCustomers);
 
 // Check in a customer
 router.post("/check-in", validate(checkInSchema), checkIn);

@@ -89,3 +89,63 @@ export const deleteCustomerSchema = z.object({
       }),
   }),
 });
+
+// Schema for getting all customers with filtering and pagination
+export const getAllCustomersSchema = z.object({
+  query: z
+    .object({
+      // Search and filter parameters
+      phoneNumber: z.string().optional().openapi({
+        description: "Filter customers by phone number (partial match)",
+        example: "555",
+      }),
+      name: z.string().optional().openapi({
+        description:
+          "Filter customers by name (partial match, case insensitive)",
+        example: "John",
+      }),
+      totalPointsMin: z
+        .string()
+        .regex(/^\d+$/, "Must be a positive integer")
+        .transform((val) => parseInt(val))
+        .optional()
+        .openapi({
+          description: "Minimum total points",
+          example: "100",
+        }),
+      totalPointsMax: z
+        .string()
+        .regex(/^\d+$/, "Must be a positive integer")
+        .transform((val) => parseInt(val))
+        .optional()
+        .openapi({
+          description: "Maximum total points",
+          example: "500",
+        }),
+      merchantId: z.string().uuid("Must be a valid UUID").optional().openapi({
+        description: "Filter by merchant ID",
+        example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      }),
+
+      // Pagination parameters
+      page: z
+        .string()
+        .regex(/^\d+$/, "Must be a positive integer")
+        .transform((val) => parseInt(val))
+        .optional()
+        .openapi({
+          description: "Page number (starts from 1)",
+          example: "1",
+        }),
+      limit: z
+        .string()
+        .regex(/^\d+$/, "Must be a positive integer")
+        .transform((val) => parseInt(val))
+        .optional()
+        .openapi({
+          description: "Number of items per page (max 100)",
+          example: "10",
+        }),
+    })
+    .optional(),
+});
