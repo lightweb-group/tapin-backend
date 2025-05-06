@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   checkInSchema,
   getCustomerByPhoneSchema,
+  updateCustomerSchema,
 } from "../validations/customerValidation";
 
 // Add OpenAPI metadata to our Zod schemas
@@ -382,6 +383,102 @@ const openApiDocument = createDocument({
           },
           "404": {
             $ref: "#/components/responses/NotFound",
+          },
+          "429": {
+            $ref: "#/components/responses/TooManyRequests",
+          },
+          "500": {
+            $ref: "#/components/responses/InternalServer",
+          },
+        },
+      },
+      put: {
+        summary: "Update customer information",
+        tags: ["Customers"],
+        parameters: [
+          {
+            in: "path",
+            name: "phoneNumber",
+            required: true,
+            schema: {
+              type: "string",
+              minLength: 10,
+              maxLength: 15,
+              example: "1234567890",
+            },
+            description: "Current phone number of the customer to update",
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "Updated customer name",
+                    example: "John Doe",
+                  },
+                  phoneNumber: {
+                    type: "string",
+                    description: "New phone number for the customer",
+                    example: "9876543210",
+                    minLength: 10,
+                    maxLength: 15,
+                  },
+                  totalPoints: {
+                    type: "integer",
+                    description: "Updated total points",
+                    example: 100,
+                    minimum: 0,
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Customer updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Customer updated successfully",
+                    },
+                    data: {
+                      type: "null",
+                      example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            $ref: "#/components/responses/BadRequest",
+          },
+          "404": {
+            $ref: "#/components/responses/NotFound",
+          },
+          "409": {
+            description: "Conflict - Phone number already exists",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/Error",
+                },
+              },
+            },
           },
           "429": {
             $ref: "#/components/responses/TooManyRequests",

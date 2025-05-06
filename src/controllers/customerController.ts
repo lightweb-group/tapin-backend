@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   checkInCustomer,
   getCustomerByPhone,
+  updateCustomer as updateCustomerService,
 } from "../services/customerService";
 import asyncWrapper from "../utils/asyncWrapper";
 import { successResponse } from "../utils/ApiResponse";
@@ -32,3 +33,19 @@ export const getCustomer = asyncWrapper(async (req: Request, res: Response) => {
     .status(httpStatus.OK)
     .json(successResponse(customer, "Customer retrieved successfully"));
 });
+
+/**
+ * Update customer information
+ */
+export const updateCustomer = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const { phoneNumber } = req.params;
+    const updateData = req.body;
+
+    await updateCustomerService(phoneNumber, updateData);
+
+    res
+      .status(httpStatus.OK)
+      .json(successResponse(null, "Customer updated successfully"));
+  }
+);
