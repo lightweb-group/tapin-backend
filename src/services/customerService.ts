@@ -3,9 +3,11 @@ import {
   Customer,
   Transaction,
   TransactionType,
+  Prisma,
 } from "@prisma/client";
 import ApiError from "../utils/ApiError";
 import httpStatus from "../constants/httpStatus";
+import { PaginationOptions, paginateResponse } from "../utils/pagination";
 
 const prisma = new PrismaClient();
 
@@ -213,4 +215,111 @@ export const deleteCustomer = async (phoneNumber: string) => {
   });
 
   return deletedCustomer;
+};
+
+// Define a type for customer without relationships using Prisma's type generation
+export type CustomerWithoutRelations = Prisma.CustomerGetPayload<{
+  select: {
+    id: true;
+    phoneNumber: true;
+    name: true;
+    totalPoints: true;
+    lastCheckIn: true;
+    createdAt: true;
+    merchantId: true;
+    updatedAt: true;
+    deletedAt: true;
+  };
+}>;
+
+/**
+ * Filter options for customer queries
+ */
+export interface CustomerFilterOptions {
+  phoneNumber?: string;
+  name?: string;
+  totalPointsMin?: number;
+  totalPointsMax?: number;
+  merchantId?: string;
+}
+
+/**
+ * Get all customers with filtering, searching, and pagination
+ * @param filterOptions Filter options for the query
+ * @param paginationOptions Pagination options for the query
+ * @returns Paginated array of customers without relationships
+ */
+export const getAllCustomers = async (
+  filterOptions: CustomerFilterOptions = {},
+  paginationOptions: PaginationOptions
+) => {
+  const { phoneNumber, name, totalPointsMin, totalPointsMax, merchantId } =
+    filterOptions;
+  const { skip, limit } = paginationOptions;
+
+  // Build where clause for filtering
+  const whereClause: Prisma.CustomerWhereInput = {};
+
+  // Add phone number search (partial match)
+  if (phoneNumber) {
+    whereClause.phoneNumber = {
+      contains: phoneNumber,
+    };
+  }
+
+  // Add name search (partial match, case insensitive)
+  if (name) {
+    whereClause.name = {
+      contains: name,
+      mode: "insensitive",
+    };
+  }
+
+  // Add points range filter
+  if (totalPointsMin !== undefined || totalPointsMax !== undefined) {
+    whereClause.totalPoints = {};
+
+    if (totalPointsMin !== undefined) {
+      whereClause.totalPoints.gte = totalPointsMin;
+    }
+
+    if (totalPointsMax !== undefined) {
+      whereClause.totalPoints.lte = totalPointsMax;
+    }
+  }
+
+  // Add merchant filter
+  if (merchantId) {
+    whereClause.merchantId = merchantId;
+  }
+
+  // First get the total count for pagination
+  const totalCustomers = await prisma.customer.count({
+    where: whereClause,
+  });
+
+  // Then get the paginated data
+  const customers = await prisma.customer.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      phoneNumber: true,
+      name: true,
+      totalPoints: true,
+      lastCheckIn: true,
+      createdAt: true,
+      merchantId: true,
+      updatedAt: true,
+      deletedAt: true,
+    },
+    skip,
+    take: limit,
+    orderBy: {
+      // Most recently created first
+      createdAt: "desc",
+    },
+  });
+
+  // Return paginated result
+  return paginateResponse(customers, totalCustomers, paginationOptions);
 };
