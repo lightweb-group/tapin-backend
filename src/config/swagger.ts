@@ -8,6 +8,7 @@ import {
   getCustomerByPhoneSchema,
   updateCustomerSchema,
   getAllCustomersSchema,
+  getCustomerByIdSchema,
 } from "../validations/customerValidation";
 
 // Add OpenAPI metadata to our Zod schemas
@@ -723,6 +724,62 @@ const openApiDocument = createDocument({
                     data: {
                       type: "null",
                       example: null,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "400": {
+            $ref: "#/components/responses/BadRequest",
+          },
+          "404": {
+            $ref: "#/components/responses/NotFound",
+          },
+          "429": {
+            $ref: "#/components/responses/TooManyRequests",
+          },
+          "500": {
+            $ref: "#/components/responses/InternalServer",
+          },
+        },
+      },
+    },
+    "/customers/id/{id}": {
+      get: {
+        summary: "Get customer by ID",
+        tags: ["Customers"],
+        parameters: [
+          {
+            in: "path",
+            name: "id",
+            required: true,
+            schema: {
+              type: "string",
+              format: "uuid",
+              example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            },
+            description: "ID of the customer to retrieve",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Customer information retrieved successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: {
+                      type: "boolean",
+                      example: true,
+                    },
+                    message: {
+                      type: "string",
+                      example: "Customer retrieved successfully",
+                    },
+                    data: {
+                      $ref: "#/components/schemas/Customer",
                     },
                   },
                 },

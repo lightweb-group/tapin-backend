@@ -5,7 +5,10 @@ import {
   updateCustomer as updateCustomerService,
   deleteCustomer as deleteCustomerService,
   getAllCustomers as getAllCustomersService,
+  getCustomerById as getCustomerByIdService,
   CustomerFilterOptions,
+  CheckInData,
+  UpdateCustomerData,
 } from "../services/customerService";
 import { getPaginationOptions } from "../utils/pagination";
 import asyncWrapper from "../utils/asyncWrapper";
@@ -113,5 +116,20 @@ export const getAllCustomers = asyncWrapper(
     return res
       .status(httpStatus.OK)
       .json(successResponse(result, "Customers retrieved successfully"));
+  }
+);
+
+/**
+ * Get customer by ID
+ */
+export const getCustomerById = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const customer = await getCustomerByIdService(id);
+
+    return res
+      .status(httpStatus.OK)
+      .json(successResponse(customer, "Customer retrieved successfully"));
   }
 );
