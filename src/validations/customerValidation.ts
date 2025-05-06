@@ -149,3 +149,13 @@ export const getAllCustomersSchema = z.object({
     })
     .optional(),
 });
+
+// Schema for getting customer by ID
+export const getCustomerByIdSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Customer ID must be a valid UUID").openapi({
+      description: "ID of the customer to retrieve",
+      example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    }),
+  }),
+});

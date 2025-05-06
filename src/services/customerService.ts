@@ -7,18 +7,22 @@ import {
 } from "@prisma/client";
 import ApiError from "../utils/ApiError";
 import httpStatus from "../constants/httpStatus";
-import { PaginationOptions, paginateResponse } from "../utils/pagination";
+import {
+  PaginationOptions,
+  paginateResponse,
+  PaginatedResult,
+} from "../utils/pagination";
 
 const prisma = new PrismaClient();
 
 /**
  * Customer service functions that handle business logic and database operations
  */
-export interface CheckInData {
+export type CheckInData = {
   phoneNumber: string;
   merchantId: string;
   name?: string;
-}
+};
 
 /**
  * Check in a customer
@@ -134,16 +138,14 @@ export const getCustomerByPhone = async (phoneNumber: string) => {
  * @param data Customer data to update
  * @returns The updated customer
  */
-export interface UpdateCustomerData {
-  name?: string;
-  phoneNumber?: string;
-  totalPoints?: number;
-}
+export type UpdateCustomerData = Partial<
+  Pick<Customer, "name" | "phoneNumber" | "totalPoints">
+>;
 
 export const updateCustomer = async (
   currentPhoneNumber: string,
   data: UpdateCustomerData
-) => {
+): Promise<Customer> => {
   // Check if customer exists
   const customer = await prisma.customer.findUnique({
     where: { phoneNumber: currentPhoneNumber },
@@ -217,31 +219,30 @@ export const deleteCustomer = async (phoneNumber: string) => {
   return deletedCustomer;
 };
 
-// Define a type for customer without relationships using Prisma's type generation
-export type CustomerWithoutRelations = Prisma.CustomerGetPayload<{
-  select: {
-    id: true;
-    phoneNumber: true;
-    name: true;
-    totalPoints: true;
-    lastCheckIn: true;
-    createdAt: true;
-    merchantId: true;
-    updatedAt: true;
-    deletedAt: true;
-  };
-}>;
+// Define customer types using Prisma types with Pick/Partial
+type CustomerBasicInfo = Pick<
+  Customer,
+  | "id"
+  | "phoneNumber"
+  | "name"
+  | "totalPoints"
+  | "lastCheckIn"
+  | "createdAt"
+  | "merchantId"
+  | "updatedAt"
+  | "deletedAt"
+>;
 
 /**
  * Filter options for customer queries
  */
-export interface CustomerFilterOptions {
+export type CustomerFilterOptions = {
   phoneNumber?: string;
   name?: string;
   totalPointsMin?: number;
   totalPointsMax?: number;
   merchantId?: string;
-}
+};
 
 /**
  * Get all customers with filtering, searching, and pagination
@@ -252,13 +253,15 @@ export interface CustomerFilterOptions {
 export const getAllCustomers = async (
   filterOptions: CustomerFilterOptions = {},
   paginationOptions: PaginationOptions
-) => {
+): Promise<PaginatedResult<CustomerBasicInfo>> => {
   const { phoneNumber, name, totalPointsMin, totalPointsMax, merchantId } =
     filterOptions;
   const { skip, limit } = paginationOptions;
 
   // Build where clause for filtering
-  const whereClause: Prisma.CustomerWhereInput = {};
+  const whereClause: Prisma.CustomerWhereInput = {
+    deletedAt: null, // Don't include soft-deleted records
+  };
 
   // Add phone number search (partial match)
   if (phoneNumber) {
@@ -320,6 +323,32 @@ export const getAllCustomers = async (
     },
   });
 
-  // Return paginated result
-  return paginateResponse(customers, totalCustomers, paginationOptions);
+  // Return paginated result with properly typed data
+  return paginateResponse<CustomerBasicInfo>(
+    customers as CustomerBasicInfo[],
+    totalCustomers,
+    paginationOptions
+  );
+};
+
+/**
+ * Get customer by ID
+ * @param id Customer ID
+ * @returns The customer or throws error if not found
+ */
+export const getCustomerById = async (id: string): Promise<Customer> => {
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+  });
+
+  if (!customer) {
+    throw new ApiError("Customer not found", httpStatus.NOT_FOUND);
+  }
+
+  // Don't return soft-deleted customers
+  if (customer.deletedAt) {
+    throw new ApiError("Customer not found", httpStatus.NOT_FOUND);
+  }
+
+  return customer;
 };
