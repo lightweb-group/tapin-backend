@@ -35,6 +35,166 @@ export type MerchantFilterOptions = {
 };
 
 /**
+ * Data for creating a new merchant
+ */
+export type CreateMerchantData = {
+  name: string;
+  address?: string;
+  phoneNumber?: string;
+  pointsPerVisit?: number;
+  pointsPerDollar?: number;
+  welcomeBonus?: number;
+  isActive?: boolean;
+};
+
+/**
+ * Data for updating a merchant
+ */
+export type UpdateMerchantData = Partial<{
+  name: string;
+  address: string;
+  phoneNumber: string;
+  pointsPerVisit: number;
+  pointsPerDollar: number;
+  welcomeBonus: number;
+  isActive: boolean;
+}>;
+
+/**
+ * Create a new merchant
+ * @param data Merchant data to create
+ * @returns The created merchant
+ */
+export const createMerchant = async (
+  data: CreateMerchantData
+): Promise<Merchant> => {
+  // If phone number is provided, check if it already exists
+  if (data.phoneNumber) {
+    const existingMerchant = await prisma.merchant.findUnique({
+      where: { phoneNumber: data.phoneNumber },
+    });
+
+    if (existingMerchant) {
+      throw new ApiError(
+        "Phone number already exists for another merchant",
+        httpStatus.CONFLICT
+      );
+    }
+  }
+
+  // Create merchant
+  const merchant = await prisma.merchant.create({
+    data: {
+      name: data.name,
+      address: data.address,
+      phoneNumber: data.phoneNumber,
+      pointsPerVisit: data.pointsPerVisit || 10, // Default value
+      pointsPerDollar: data.pointsPerDollar,
+      welcomeBonus: data.welcomeBonus || 0, // Default value
+      isActive: data.isActive !== undefined ? data.isActive : true, // Default to true
+    },
+  });
+
+  return merchant;
+};
+
+/**
+ * Update a merchant by ID
+ * @param id ID of the merchant to update
+ * @param data Merchant data to update
+ * @returns The updated merchant
+ */
+export const updateMerchant = async (
+  id: string,
+  data: UpdateMerchantData
+): Promise<Merchant> => {
+  // Check if merchant exists
+  const merchant = await prisma.merchant.findUnique({
+    where: { id },
+  });
+
+  if (!merchant) {
+    throw new ApiError("Merchant not found", httpStatus.NOT_FOUND);
+  }
+
+  // If merchant is deleted
+  if (merchant.deletedAt) {
+    throw new ApiError(
+      "Cannot update deleted merchant",
+      httpStatus.BAD_REQUEST
+    );
+  }
+
+  // If updating phone number, check if the new number already exists
+  if (data.phoneNumber && data.phoneNumber !== merchant.phoneNumber) {
+    const existingMerchant = await prisma.merchant.findUnique({
+      where: { phoneNumber: data.phoneNumber },
+    });
+
+    if (existingMerchant) {
+      throw new ApiError(
+        "Phone number already exists for another merchant",
+        httpStatus.CONFLICT
+      );
+    }
+  }
+
+  // Update merchant
+  const updatedMerchant = await prisma.merchant.update({
+    where: { id },
+    data: {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.address !== undefined && { address: data.address }),
+      ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+      ...(data.pointsPerVisit !== undefined && {
+        pointsPerVisit: data.pointsPerVisit,
+      }),
+      ...(data.pointsPerDollar !== undefined && {
+        pointsPerDollar: data.pointsPerDollar,
+      }),
+      ...(data.welcomeBonus !== undefined && {
+        welcomeBonus: data.welcomeBonus,
+      }),
+      ...(data.isActive !== undefined && { isActive: data.isActive }),
+    },
+  });
+
+  return updatedMerchant;
+};
+
+/**
+ * Soft delete a merchant by setting deletedAt timestamp
+ * @param id ID of the merchant to delete
+ * @returns The deleted merchant
+ */
+export const deleteMerchant = async (id: string): Promise<Merchant> => {
+  // Check if merchant exists
+  const merchant = await prisma.merchant.findUnique({
+    where: { id },
+  });
+
+  if (!merchant) {
+    throw new ApiError("Merchant not found", httpStatus.NOT_FOUND);
+  }
+
+  // If merchant is already deleted
+  if (merchant.deletedAt) {
+    throw new ApiError("Merchant already deleted", httpStatus.BAD_REQUEST);
+  }
+
+  // Soft delete the merchant by setting deletedAt timestamp
+  const deletedMerchant = await prisma.merchant.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+      isActive: false, // Also set to inactive when deleted
+    },
+  });
+
+  return deletedMerchant;
+};
+
+/**
  * Get merchant by ID
  * @param id Merchant ID
  * @returns The merchant or throws error if not found
