@@ -3,12 +3,61 @@ import {
   getMerchantById as getMerchantByIdService,
   getMerchantByPhone as getMerchantByPhoneService,
   getAllMerchants as getAllMerchantsService,
+  createMerchant as createMerchantService,
+  updateMerchant as updateMerchantService,
+  deleteMerchant as deleteMerchantService,
   MerchantFilterOptions,
 } from "../services/merchantService";
 import { getPaginationOptions } from "../utils/pagination";
 import asyncWrapper from "../utils/asyncWrapper";
 import { successResponse } from "../utils/ApiResponse";
 import httpStatus from "../constants/httpStatus";
+
+/**
+ * Create a new merchant
+ */
+export const createMerchant = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const merchantData = req.body;
+
+    const merchant = await createMerchantService(merchantData);
+
+    return res
+      .status(httpStatus.CREATED)
+      .json(successResponse(merchant, "Merchant created successfully"));
+  }
+);
+
+/**
+ * Update an existing merchant
+ */
+export const updateMerchant = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const merchant = await updateMerchantService(id, updateData);
+
+    return res
+      .status(httpStatus.OK)
+      .json(successResponse(merchant, "Merchant updated successfully"));
+  }
+);
+
+/**
+ * Delete a merchant (soft delete)
+ */
+export const deleteMerchant = asyncWrapper(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    await deleteMerchantService(id);
+
+    return res
+      .status(httpStatus.OK)
+      .json(successResponse(null, "Merchant deleted successfully"));
+  }
+);
 
 /**
  * Get merchant by ID

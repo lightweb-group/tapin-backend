@@ -4,6 +4,9 @@ import {
   getMerchantByIdSchema,
   getMerchantByPhoneSchema,
   getAllMerchantsSchema,
+  createMerchantSchema,
+  updateMerchantSchema,
+  deleteMerchantSchema,
 } from "../../validations/merchantValidation";
 
 /**
@@ -110,6 +113,107 @@ export const merchantPaths = {
         },
       },
     },
+    post: {
+      summary: "Create a new merchant",
+      tags: ["Merchants"],
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["name"],
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Merchant business name",
+                  example: "Coffee Shop",
+                },
+                address: {
+                  type: "string",
+                  description: "Merchant address",
+                  example: "123 Main St, City, Country",
+                },
+                phoneNumber: {
+                  type: "string",
+                  description: "Merchant phone number",
+                  example: "1234567890",
+                  minLength: 10,
+                  maxLength: 15,
+                },
+                pointsPerVisit: {
+                  type: "integer",
+                  description: "Points awarded per customer visit",
+                  example: 10,
+                  minimum: 0,
+                },
+                pointsPerDollar: {
+                  type: "number",
+                  description: "Points awarded per dollar spent",
+                  example: 1,
+                  minimum: 0,
+                },
+                welcomeBonus: {
+                  type: "integer",
+                  description: "Welcome bonus points for new customers",
+                  example: 50,
+                  minimum: 0,
+                },
+                isActive: {
+                  type: "boolean",
+                  description: "Whether the merchant is active",
+                  example: true,
+                },
+              },
+            },
+          },
+        },
+        required: true,
+      },
+      responses: {
+        "201": {
+          description: "Merchant created successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true,
+                  },
+                  message: {
+                    type: "string",
+                    example: "Merchant created successfully",
+                  },
+                  data: {
+                    $ref: "#/components/schemas/Merchant",
+                  },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          $ref: "#/components/responses/BadRequest",
+        },
+        "409": {
+          description: "Conflict - phone number already exists",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "429": {
+          $ref: "#/components/responses/TooManyRequests",
+        },
+        "500": {
+          $ref: "#/components/responses/InternalServer",
+        },
+      },
+    },
   },
   "/merchants/id/{id}": {
     get: {
@@ -146,6 +250,178 @@ export const merchantPaths = {
                   },
                   data: {
                     $ref: "#/components/schemas/Merchant",
+                  },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          $ref: "#/components/responses/BadRequest",
+        },
+        "404": {
+          $ref: "#/components/responses/NotFound",
+        },
+        "429": {
+          $ref: "#/components/responses/TooManyRequests",
+        },
+        "500": {
+          $ref: "#/components/responses/InternalServer",
+        },
+      },
+    },
+    put: {
+      summary: "Update a merchant by ID",
+      tags: ["Merchants"],
+      parameters: [
+        {
+          in: "path",
+          name: "id",
+          required: true,
+          schema: {
+            type: "string",
+            format: "uuid",
+            example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          },
+          description: "ID of the merchant to update",
+        },
+      ],
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Updated merchant name",
+                  example: "New Coffee Shop Name",
+                  minLength: 1,
+                },
+                address: {
+                  type: "string",
+                  description: "Updated merchant address",
+                  example: "456 New St, City, Country",
+                },
+                phoneNumber: {
+                  type: "string",
+                  description: "Updated merchant phone number",
+                  example: "9876543210",
+                  minLength: 10,
+                  maxLength: 15,
+                },
+                pointsPerVisit: {
+                  type: "integer",
+                  description: "Updated points per visit",
+                  example: 15,
+                  minimum: 0,
+                },
+                pointsPerDollar: {
+                  type: "number",
+                  description: "Updated points per dollar spent",
+                  example: 1.5,
+                  minimum: 0,
+                },
+                welcomeBonus: {
+                  type: "integer",
+                  description: "Updated welcome bonus",
+                  example: 75,
+                  minimum: 0,
+                },
+                isActive: {
+                  type: "boolean",
+                  description: "Updated merchant active status",
+                  example: true,
+                },
+              },
+            },
+          },
+        },
+        required: true,
+      },
+      responses: {
+        "200": {
+          description: "Merchant updated successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true,
+                  },
+                  message: {
+                    type: "string",
+                    example: "Merchant updated successfully",
+                  },
+                  data: {
+                    $ref: "#/components/schemas/Merchant",
+                  },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          $ref: "#/components/responses/BadRequest",
+        },
+        "404": {
+          $ref: "#/components/responses/NotFound",
+        },
+        "409": {
+          description: "Conflict - phone number already exists",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        "429": {
+          $ref: "#/components/responses/TooManyRequests",
+        },
+        "500": {
+          $ref: "#/components/responses/InternalServer",
+        },
+      },
+    },
+    delete: {
+      summary: "Delete a merchant by ID (soft delete)",
+      tags: ["Merchants"],
+      parameters: [
+        {
+          in: "path",
+          name: "id",
+          required: true,
+          schema: {
+            type: "string",
+            format: "uuid",
+            example: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          },
+          description: "ID of the merchant to delete",
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Merchant deleted successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true,
+                  },
+                  message: {
+                    type: "string",
+                    example: "Merchant deleted successfully",
+                  },
+                  data: {
+                    type: "null",
+                    example: null,
                   },
                 },
               },
